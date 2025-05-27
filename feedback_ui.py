@@ -104,7 +104,7 @@ class FeedbackUI(QMainWindow):
         font.setPointSize(self.font_size)
 
         # Feedback section
-        self.feedback_group = QGroupBox("Feedback")
+        self.feedback_group = QGroupBox("")
         self.feedback_group.setFont(font)
         feedback_layout = QVBoxLayout(self.feedback_group)
 
@@ -112,6 +112,7 @@ class FeedbackUI(QMainWindow):
         self.description_label = QLabel(self.prompt)
         self.description_label.setWordWrap(True)
         self.description_label.setFont(font)
+        self.description_label.setTextInteractionFlags(Qt.TextSelectableByMouse | Qt.TextSelectableByKeyboard)
         feedback_layout.addWidget(self.description_label)
 
         # Add predefined options if any

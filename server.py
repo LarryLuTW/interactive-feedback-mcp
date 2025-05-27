@@ -66,7 +66,7 @@ def launch_feedback_ui(summary: str, predefinedOptions: list[str] | None = None)
 
 @mcp.tool()
 def interactive_feedback(
-    message: str = Field(description="The specific question for the user"),
+    message: str = Field(description="The specific question for the user - should be as concise as possible"),
     predefined_options: list = Field(default=None, description="Predefined options for the user to choose from (optional)"),
 ) -> Dict[str, str]:
     """Request interactive feedback from the user"""
