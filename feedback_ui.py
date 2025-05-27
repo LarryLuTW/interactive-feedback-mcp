@@ -18,6 +18,7 @@ from PySide6.QtGui import QTextCursor, QIcon, QKeyEvent, QPalette, QColor, QFont
 
 class FeedbackResult(TypedDict):
     interactive_feedback: str
+    git_commit: bool
 
 def get_dark_mode_palette(app: QApplication):
     darkPalette = app.palette()
@@ -166,11 +167,18 @@ class FeedbackUI(QMainWindow):
         self.text_padding = padding
 
         self.feedback_text.setPlaceholderText("Enter your feedback here (Ctrl+Enter to submit)")
+        
+        # Git commit checkbox
+        self.git_commit_checkbox = QCheckBox("Auto git commit")
+        self.git_commit_checkbox.setFont(font)
+        self.git_commit_checkbox.setChecked(False)  # Default not checked
+        
         submit_button = QPushButton("&Send Feedback")
         submit_button.setFont(font)
         submit_button.clicked.connect(self._submit_feedback)
 
         feedback_layout.addWidget(self.feedback_text)
+        feedback_layout.addWidget(self.git_commit_checkbox)
         feedback_layout.addWidget(submit_button)
 
         # Note: minimum height will be dynamically adjusted
@@ -248,6 +256,7 @@ class FeedbackUI(QMainWindow):
             
         self.feedback_result = FeedbackResult(
             interactive_feedback=final_feedback,
+            git_commit=self.git_commit_checkbox.isChecked()
         )
         self.close()
 
@@ -265,7 +274,7 @@ class FeedbackUI(QMainWindow):
         QApplication.instance().exec()
 
         if not self.feedback_result:
-            return FeedbackResult(interactive_feedback="")
+            return FeedbackResult(interactive_feedback="", git_commit=False)
 
         return self.feedback_result
 

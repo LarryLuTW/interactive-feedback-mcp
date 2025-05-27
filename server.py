@@ -67,7 +67,25 @@ def launch_feedback_ui() -> dict[str, str]:
 @mcp.tool()
 def interactive_feedback() -> Dict[str, str]:
     """Request interactive feedback from the user"""
-    return launch_feedback_ui()
+    result = launch_feedback_ui()
+    
+    # Check if user requested git commit
+    if result.get('git_commit', False):
+        feedback_text = result.get('interactive_feedback', '').strip()
+        
+        # Create concise conventional commit message
+        if feedback_text:
+            # Use first line/sentence as commit message, keep it concise
+            first_line = feedback_text.split('\n')[0].split('.')[0].strip()
+            commit_message = f"feat: {first_line}" if first_line else "feat: apply changes"
+        else:
+            commit_message = "feat: apply changes"
+        
+        # Add instruction for git commit to the response
+        git_instruction = f"\n\n[AUTO COMMIT REQUESTED] Create commit: {commit_message}"
+        result['interactive_feedback'] = result.get('interactive_feedback', '') + git_instruction
+    
+    return result
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Interactive Feedback MCP Server")
