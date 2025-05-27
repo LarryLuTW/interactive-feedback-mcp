@@ -20,7 +20,7 @@ mcp = FastMCP("Interactive Feedback MCP", log_level="ERROR")
 # Global variable to store font size from CLI args
 FONT_SIZE = 12  # Default font size
 
-def launch_feedback_ui(summary: str, predefinedOptions: list[str] | None = None) -> dict[str, str]:
+def launch_feedback_ui() -> dict[str, str]:
     # Create a temporary file for the feedback result
     with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as tmp:
         output_file = tmp.name
@@ -37,9 +37,9 @@ def launch_feedback_ui(summary: str, predefinedOptions: list[str] | None = None)
             sys.executable,
             "-u",
             feedback_ui_path,
-            "--prompt", summary,
+            "--prompt", "",
             "--output-file", output_file,
-            "--predefined-options", "|||".join(predefinedOptions) if predefinedOptions else "",
+            "--predefined-options", "",
             "--font-size", str(FONT_SIZE)
         ]
         result = subprocess.run(
@@ -65,13 +65,9 @@ def launch_feedback_ui(summary: str, predefinedOptions: list[str] | None = None)
         raise e
 
 @mcp.tool()
-def interactive_feedback(
-    message: str = Field(description="The specific question for the user - should be as concise as possible"),
-    predefined_options: list = Field(default=None, description="Predefined options for the user to choose from (optional)"),
-) -> Dict[str, str]:
+def interactive_feedback() -> Dict[str, str]:
     """Request interactive feedback from the user"""
-    predefined_options_list = predefined_options if isinstance(predefined_options, list) else None
-    return launch_feedback_ui(message, predefined_options_list)
+    return launch_feedback_ui()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Interactive Feedback MCP Server")
