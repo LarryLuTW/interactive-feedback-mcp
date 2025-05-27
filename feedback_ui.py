@@ -10,7 +10,7 @@ from typing import Optional, TypedDict, List
 
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-    QLabel, QLineEdit, QPushButton, QCheckBox, QTextEdit, QGroupBox,
+    QLabel, QLineEdit, QPushButton, QCheckBox, QTextEdit, QPlainTextEdit, QGroupBox,
     QFrame
 )
 from PySide6.QtCore import Qt, Signal, QObject, QTimer, QSettings
@@ -44,7 +44,7 @@ def get_dark_mode_palette(app: QApplication):
     darkPalette.setColor(QPalette.PlaceholderText, QColor(127, 127, 127))
     return darkPalette
 
-class FeedbackTextEdit(QTextEdit):
+class FeedbackTextEdit(QPlainTextEdit):
     def __init__(self, parent=None):
         super().__init__(parent)
 
