@@ -47,6 +47,8 @@ def get_dark_mode_palette(app: QApplication):
 class FeedbackTextEdit(QPlainTextEdit):
     def __init__(self, parent=None):
         super().__init__(parent)
+        # Connect text change signal to update window size
+        self.textChanged.connect(self._on_text_changed)
 
     def keyPressEvent(self, event: QKeyEvent):
         if event.key() == Qt.Key_Return and event.modifiers() == Qt.ControlModifier:
@@ -58,6 +60,14 @@ class FeedbackTextEdit(QPlainTextEdit):
                 parent._submit_feedback()
         else:
             super().keyPressEvent(event)
+    
+    def _on_text_changed(self):
+        # Find the parent FeedbackUI instance and trigger resize
+        parent = self.parent()
+        while parent and not isinstance(parent, FeedbackUI):
+            parent = parent.parent()
+        if parent:
+            parent._adjust_window_size()
 
 class FeedbackUI(QMainWindow):
     def __init__(self, prompt: str, predefined_options: Optional[List[str]] = None, font_size: int = 12):
@@ -82,10 +92,12 @@ class FeedbackUI(QMainWindow):
         if geometry:
             self.restoreGeometry(geometry)
         else:
-            self.resize(800, 600)
+            # Start with a smaller initial size
+            initial_width, initial_height = 600, 300
+            self.resize(initial_width, initial_height)
             screen = QApplication.primaryScreen().geometry()
-            x = (screen.width() - 800) // 2
-            y = (screen.height() - 600) // 2
+            x = (screen.width() - initial_width) // 2
+            y = (screen.height() - initial_height) // 2
             self.move(x, y)
         state = self.settings.value("windowState")
         if state:
@@ -141,9 +153,14 @@ class FeedbackUI(QMainWindow):
         self.feedback_text.setFont(font)
         font_metrics = self.feedback_text.fontMetrics()
         row_height = font_metrics.height()
-        # Calculate height for 5 lines + some padding for margins
+        # Calculate initial height for 3 lines + some padding for margins
         padding = self.feedback_text.contentsMargins().top() + self.feedback_text.contentsMargins().bottom() + 5 # 5 is extra vertical padding
-        self.feedback_text.setMinimumHeight(5 * row_height + padding)
+        self.initial_text_height = 3 * row_height + padding
+        self.feedback_text.setMinimumHeight(self.initial_text_height)
+        
+        # Store font metrics for dynamic resizing
+        self.row_height = row_height
+        self.text_padding = padding
 
         self.feedback_text.setPlaceholderText("Enter your feedback here (Ctrl+Enter to submit)")
         submit_button = QPushButton("&Send Feedback")
@@ -153,11 +170,51 @@ class FeedbackUI(QMainWindow):
         feedback_layout.addWidget(self.feedback_text)
         feedback_layout.addWidget(submit_button)
 
-        # Set minimum height for feedback_group
-        self.feedback_group.setMinimumHeight(self.description_label.sizeHint().height() + self.feedback_text.minimumHeight() + submit_button.sizeHint().height() + feedback_layout.spacing() * 2 + feedback_layout.contentsMargins().top() + feedback_layout.contentsMargins().bottom() + 10)
+        # Note: minimum height will be dynamically adjusted
 
         # Add widgets
         layout.addWidget(self.feedback_group)
+
+    def _adjust_window_size(self):
+        """Dynamically adjust window size based on text content"""
+        text_content = self.feedback_text.toPlainText()
+        lines = text_content.split('\n')
+        line_count = len(lines)
+        
+        # Calculate the width needed for the longest line
+        font_metrics = self.feedback_text.fontMetrics()
+        max_line_width = 0
+        for line in lines:
+            line_width = font_metrics.horizontalAdvance(line)
+            max_line_width = max(max_line_width, line_width)
+        
+        # Calculate new text area height (minimum 3 lines, maximum 15 lines)
+        min_lines = 3
+        max_lines = 15
+        actual_lines = max(min_lines, min(line_count + 1, max_lines))  # +1 for cursor line
+        new_text_height = actual_lines * self.row_height + self.text_padding
+        
+        # Calculate new window width (minimum 600, maximum 1200)
+        min_width = 600
+        max_width = 1200
+        content_width = max_line_width + 100  # Add padding for margins and scrollbar
+        new_width = max(min_width, min(content_width, max_width))
+        
+        # Get current window size
+        current_size = self.size()
+        current_height = current_size.height()
+        
+        # Calculate height difference
+        current_text_height = self.feedback_text.height()
+        height_diff = new_text_height - current_text_height
+        new_height = max(300, current_height + height_diff)  # Minimum height of 300
+        
+        # Update text area height
+        self.feedback_text.setMinimumHeight(new_text_height)
+        self.feedback_text.setMaximumHeight(new_text_height)
+        
+        # Resize window
+        self.resize(new_width, new_height)
 
     def _submit_feedback(self):
         feedback_text = self.feedback_text.toPlainText().strip()
