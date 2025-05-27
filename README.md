@@ -55,7 +55,9 @@ This server exposes the following tool via the Model Context Protocol (MCP):
         "--directory",
         "/path/to/interactive-feedback-mcp",
         "run",
-        "server.py"
+        "server.py",
+        "--font-size",
+        "14"
       ],
       "timeout": 600,
       "autoApprove": [
@@ -65,6 +67,9 @@ This server exposes the following tool via the Model Context Protocol (MCP):
   }
 }
 ```
+
+**Optional Configuration:**
+- You can adjust the font size by changing the `"14"` value to your preferred size (default is 12).
 2. Add the following to the custom rules in your AI assistant (in Cursor Settings > Rules > User Rules):
 
 > If requirements or instructions are unclear use the tool interactive_feedback to ask clarifying questions to the user before proceeding, do not make assumptions. Whenever possible, present the user with predefined options through the interactive_feedback MCP tool to facilitate quick decisions.
