@@ -18,7 +18,7 @@ from pydantic import Field
 mcp = FastMCP("Interactive Feedback MCP", log_level="ERROR")
 
 # Global variable to store font size from CLI args
-FONT_SIZE = 12  # Default font size
+FONT_SIZE = 14  # Default font size
 
 def launch_feedback_ui() -> dict[str, str]:
     # Create a temporary file for the feedback result
@@ -79,8 +79,8 @@ def interactive_feedback() -> Dict[str, str]:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Interactive Feedback MCP Server")
-    parser.add_argument("--font-size", type=int, default=12, 
-                       help="Font size for the feedback UI (default: 12)")
+    parser.add_argument("--font-size", type=int, default=14, 
+                       help="Font size for the feedback UI (default: 14)")
     args = parser.parse_args()
     
     # Update global font size from CLI args
