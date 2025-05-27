@@ -96,8 +96,8 @@ class FeedbackUI(QMainWindow):
         if geometry:
             self.restoreGeometry(geometry)
         else:
-            # Start with a smaller initial size
-            initial_width, initial_height = 600, 300
+            # Start with a smaller initial size that matches the min width from dynamic sizing
+            initial_width, initial_height = 600, 180
             self.resize(initial_width, initial_height)
             screen = QApplication.primaryScreen().geometry()
             x = (screen.width() - initial_width) // 2
@@ -114,8 +114,8 @@ class FeedbackUI(QMainWindow):
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         layout = QVBoxLayout(central_widget)
-        layout.setContentsMargins(5, 5, 5, 5)  # Reduce window margins
-        layout.setSpacing(5)  # Reduce spacing
+        layout.setContentsMargins(5, 2, 5, 3)  # Ultra compact window margins
+        layout.setSpacing(1)  # Ultra minimal spacing
 
         # Set up font with configured size
         font = QFont()
@@ -125,22 +125,17 @@ class FeedbackUI(QMainWindow):
         self.feedback_group = QGroupBox("")
         self.feedback_group.setFont(font)
         feedback_layout = QVBoxLayout(self.feedback_group)
-        feedback_layout.setSpacing(8)  # Reduce spacing between elements
-        feedback_layout.setContentsMargins(10, 10, 10, 10)  # Reduce margins
+        feedback_layout.setSpacing(2)  # Ultra minimal spacing between elements
+        feedback_layout.setContentsMargins(5, 3, 5, 4)  # Ultra compact margins
 
-        # Description label (from self.prompt) - Support multiline
-        self.description_label = QLabel(self.prompt)
-        self.description_label.setWordWrap(True)
-        self.description_label.setFont(font)
-        self.description_label.setTextInteractionFlags(Qt.TextSelectableByMouse | Qt.TextSelectableByKeyboard)
-        feedback_layout.addWidget(self.description_label)
+        # Description label removed as requested
 
         # Add predefined options if any
         self.option_checkboxes = []
         if self.predefined_options and len(self.predefined_options) > 0:
             options_frame = QFrame()
             options_layout = QVBoxLayout(options_frame)
-            options_layout.setContentsMargins(0, 5, 0, 5)
+            options_layout.setContentsMargins(0, 2, 0, 2)
             
             for option in self.predefined_options:
                 checkbox = QCheckBox(option)
@@ -182,6 +177,9 @@ class FeedbackUI(QMainWindow):
 
         # Add widgets
         layout.addWidget(self.feedback_group)
+        
+        # Initialize the window size correctly
+        self._adjust_window_size()
 
     def _adjust_window_size(self):
         """Dynamically adjust window size based on text content"""
@@ -202,9 +200,9 @@ class FeedbackUI(QMainWindow):
         actual_lines = max(min_lines, min(line_count + 1, max_lines))  # +1 for cursor line
         new_text_height = actual_lines * self.row_height + self.text_padding
         
-        # Calculate new window width (minimum 600, maximum 1200)
+        # Calculate new window width (minimum 600, maximum 900)
         min_width = 600
-        max_width = 1200
+        max_width = 900
         content_width = max_line_width + 100  # Add padding for margins and scrollbar
         new_width = max(min_width, min(content_width, max_width))
         
@@ -215,7 +213,7 @@ class FeedbackUI(QMainWindow):
         # Calculate height difference
         current_text_height = self.feedback_text.height()
         height_diff = new_text_height - current_text_height
-        new_height = max(300, current_height + height_diff)  # Minimum height of 300
+        new_height = max(150, current_height + height_diff)  # Minimum height of 150
         
         # Update text area height
         self.feedback_text.setMinimumHeight(new_text_height)
