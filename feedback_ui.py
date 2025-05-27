@@ -62,12 +62,16 @@ class FeedbackTextEdit(QPlainTextEdit):
             super().keyPressEvent(event)
     
     def _on_text_changed(self):
-        # Find the parent FeedbackUI instance and trigger resize
-        parent = self.parent()
-        while parent and not isinstance(parent, FeedbackUI):
-            parent = parent.parent()
-        if parent:
-            parent._adjust_window_size()
+        # Only resize if content actually changed (not just focus events)
+        current_text = self.toPlainText()
+        if not hasattr(self, '_last_text') or self._last_text != current_text:
+            self._last_text = current_text
+            # Find the parent FeedbackUI instance and trigger resize
+            parent = self.parent()
+            while parent and not isinstance(parent, FeedbackUI):
+                parent = parent.parent()
+            if parent:
+                parent._adjust_window_size()
 
 class FeedbackUI(QMainWindow):
     def __init__(self, prompt: str, predefined_options: Optional[List[str]] = None, font_size: int = 12):
@@ -110,6 +114,8 @@ class FeedbackUI(QMainWindow):
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         layout = QVBoxLayout(central_widget)
+        layout.setContentsMargins(5, 5, 5, 5)  # Reduce window margins
+        layout.setSpacing(5)  # Reduce spacing
 
         # Set up font with configured size
         font = QFont()
@@ -119,6 +125,8 @@ class FeedbackUI(QMainWindow):
         self.feedback_group = QGroupBox("")
         self.feedback_group.setFont(font)
         feedback_layout = QVBoxLayout(self.feedback_group)
+        feedback_layout.setSpacing(8)  # Reduce spacing between elements
+        feedback_layout.setContentsMargins(10, 10, 10, 10)  # Reduce margins
 
         # Description label (from self.prompt) - Support multiline
         self.description_label = QLabel(self.prompt)
@@ -132,7 +140,7 @@ class FeedbackUI(QMainWindow):
         if self.predefined_options and len(self.predefined_options) > 0:
             options_frame = QFrame()
             options_layout = QVBoxLayout(options_frame)
-            options_layout.setContentsMargins(0, 10, 0, 10)
+            options_layout.setContentsMargins(0, 5, 0, 5)
             
             for option in self.predefined_options:
                 checkbox = QCheckBox(option)
@@ -154,7 +162,7 @@ class FeedbackUI(QMainWindow):
         font_metrics = self.feedback_text.fontMetrics()
         row_height = font_metrics.height()
         # Calculate initial height for 3 lines + some padding for margins
-        padding = self.feedback_text.contentsMargins().top() + self.feedback_text.contentsMargins().bottom() + 5 # 5 is extra vertical padding
+        padding = self.feedback_text.contentsMargins().top() + self.feedback_text.contentsMargins().bottom() + 8 # Reduced padding
         self.initial_text_height = 3 * row_height + padding
         self.feedback_text.setMinimumHeight(self.initial_text_height)
         
