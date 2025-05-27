@@ -7,6 +7,7 @@ import sys
 import json
 import tempfile
 import subprocess
+import argparse
 
 from typing import Annotated, Dict
 
@@ -15,6 +16,9 @@ from pydantic import Field
 
 # The log_level is necessary for Cline to work: https://github.com/jlowin/fastmcp/issues/81
 mcp = FastMCP("Interactive Feedback MCP", log_level="ERROR")
+
+# Global variable to store font size from CLI args
+FONT_SIZE = 12  # Default font size
 
 def launch_feedback_ui(summary: str, predefinedOptions: list[str] | None = None) -> dict[str, str]:
     # Create a temporary file for the feedback result
@@ -35,7 +39,8 @@ def launch_feedback_ui(summary: str, predefinedOptions: list[str] | None = None)
             feedback_ui_path,
             "--prompt", summary,
             "--output-file", output_file,
-            "--predefined-options", "|||".join(predefinedOptions) if predefinedOptions else ""
+            "--predefined-options", "|||".join(predefinedOptions) if predefinedOptions else "",
+            "--font-size", str(FONT_SIZE)
         ]
         result = subprocess.run(
             args,
@@ -69,4 +74,12 @@ def interactive_feedback(
     return launch_feedback_ui(message, predefined_options_list)
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Interactive Feedback MCP Server")
+    parser.add_argument("--font-size", type=int, default=12, 
+                       help="Font size for the feedback UI (default: 12)")
+    args = parser.parse_args()
+    
+    # Update global font size from CLI args
+    FONT_SIZE = args.font_size
+    
     mcp.run(transport="stdio")

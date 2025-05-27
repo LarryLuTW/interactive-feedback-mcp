@@ -14,7 +14,7 @@ from PySide6.QtWidgets import (
     QFrame
 )
 from PySide6.QtCore import Qt, Signal, QObject, QTimer, QSettings
-from PySide6.QtGui import QTextCursor, QIcon, QKeyEvent, QPalette, QColor
+from PySide6.QtGui import QTextCursor, QIcon, QKeyEvent, QPalette, QColor, QFont
 
 class FeedbackResult(TypedDict):
     interactive_feedback: str
@@ -60,10 +60,11 @@ class FeedbackTextEdit(QTextEdit):
             super().keyPressEvent(event)
 
 class FeedbackUI(QMainWindow):
-    def __init__(self, prompt: str, predefined_options: Optional[List[str]] = None):
+    def __init__(self, prompt: str, predefined_options: Optional[List[str]] = None, font_size: int = 12):
         super().__init__()
         self.prompt = prompt
         self.predefined_options = predefined_options or []
+        self.font_size = font_size
 
         self.feedback_result = None
         
@@ -98,13 +99,19 @@ class FeedbackUI(QMainWindow):
         self.setCentralWidget(central_widget)
         layout = QVBoxLayout(central_widget)
 
+        # Set up font with configured size
+        font = QFont()
+        font.setPointSize(self.font_size)
+
         # Feedback section
         self.feedback_group = QGroupBox("Feedback")
+        self.feedback_group.setFont(font)
         feedback_layout = QVBoxLayout(self.feedback_group)
 
         # Description label (from self.prompt) - Support multiline
         self.description_label = QLabel(self.prompt)
         self.description_label.setWordWrap(True)
+        self.description_label.setFont(font)
         feedback_layout.addWidget(self.description_label)
 
         # Add predefined options if any
@@ -116,6 +123,7 @@ class FeedbackUI(QMainWindow):
             
             for option in self.predefined_options:
                 checkbox = QCheckBox(option)
+                checkbox.setFont(font)
                 self.option_checkboxes.append(checkbox)
                 options_layout.addWidget(checkbox)
             
@@ -129,6 +137,7 @@ class FeedbackUI(QMainWindow):
 
         # Free-form text feedback
         self.feedback_text = FeedbackTextEdit()
+        self.feedback_text.setFont(font)
         font_metrics = self.feedback_text.fontMetrics()
         row_height = font_metrics.height()
         # Calculate height for 5 lines + some padding for margins
@@ -137,6 +146,7 @@ class FeedbackUI(QMainWindow):
 
         self.feedback_text.setPlaceholderText("Enter your feedback here (Ctrl+Enter to submit)")
         submit_button = QPushButton("&Send Feedback")
+        submit_button.setFont(font)
         submit_button.clicked.connect(self._submit_feedback)
 
         feedback_layout.addWidget(self.feedback_text)
@@ -195,11 +205,11 @@ class FeedbackUI(QMainWindow):
 
         return self.feedback_result
 
-def feedback_ui(prompt: str, predefined_options: Optional[List[str]] = None, output_file: Optional[str] = None) -> Optional[FeedbackResult]:
+def feedback_ui(prompt: str, predefined_options: Optional[List[str]] = None, output_file: Optional[str] = None, font_size: int = 12) -> Optional[FeedbackResult]:
     app = QApplication.instance() or QApplication()
     app.setPalette(get_dark_mode_palette(app))
     app.setStyle("Fusion")
-    ui = FeedbackUI(prompt, predefined_options)
+    ui = FeedbackUI(prompt, predefined_options, font_size)
     result = ui.run()
 
     if output_file and result:
@@ -217,11 +227,12 @@ if __name__ == "__main__":
     parser.add_argument("--prompt", default="I implemented the changes you requested.", help="The prompt to show to the user")
     parser.add_argument("--predefined-options", default="", help="Pipe-separated list of predefined options (|||)")
     parser.add_argument("--output-file", help="Path to save the feedback result as JSON")
+    parser.add_argument("--font-size", type=int, default=12, help="Font size for the UI (default: 12)")
     args = parser.parse_args()
 
     predefined_options = [opt for opt in args.predefined_options.split("|||") if opt] if args.predefined_options else None
     
-    result = feedback_ui(args.prompt, predefined_options, args.output_file)
+    result = feedback_ui(args.prompt, predefined_options, args.output_file, args.font_size)
     if result:
         print(f"\nFeedback received:\n{result['interactive_feedback']}")
     sys.exit(0)
