@@ -72,12 +72,12 @@ def interactive_feedback() -> Dict[str, str]:
     # Check if user requested git commit
     if result.get('git_commit', False):
         # Add instruction for git add and commit in one command
-        git_instruction = "\n\n[AUTO COMMIT REQUESTED] Create concise git commit message and do git add and git commit in single command"
+        git_instruction = "\n\n[AUTO COMMIT REQUESTED] Create concise conventional commit message (e.g., feat:, fix:, docs:, etc.) and do git add and git commit in single command"
         result['interactive_feedback'] = result.get('interactive_feedback', '') + git_instruction
     
     # Always ask for review regardless of git commit status
-    review_instruction = "\n\n[REVIEW REQUESTED] Please ask for user feedback before completing this request"
-    result['interactive_feedback'] = result.get('interactive_feedback', '') + review_instruction
+    review_instruction = "[REVIEW REQUESTED] Please ask for user feedback before completing this request"
+    result['next_step_must_do'] = review_instruction
     
     return result
 
